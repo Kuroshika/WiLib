@@ -1,0 +1,73 @@
+debug: True
+
+output_path:
+pretrained_model:
+device_id: [ 0 ]
+cuda_visible_device: '0'
+
+# loss_function
+loss: 'cross_entropy'
+
+data_param:
+  type: "UT_HAR"
+  class_num: 7
+  batch_size: 16
+  workers: 0
+  pin_memory: False
+  drop_last: True
+  dataset_mode: [ "train", "val" ]
+
+  train_data_param:
+    data_path: /media/sda/LeiH/Dataset/UT_HAR/data
+    label_path: /media/sda/LeiH/Dataset/UT_HAR/label
+  val_data_param:
+    data_path: /media/sda/LeiH/Dataset/UT_HAR/data
+    label_path: /media/sda/LeiH/Dataset/UT_HAR/label
+
+# model_param is for build_model
+model_param:
+  type: 'STGAT'
+  num_point: 3
+  num_frame: 250
+  num_subset: 1
+  num_person: 1
+  num_channel: 30
+  glo_reg_s: True
+  att_s: True
+  glo_reg_t: False
+  att_t: False
+  dropout: 0
+  attentiondrop: 0
+  dropout2d: 0
+  use_spatial_att: True
+  use_temporal_att: False
+  use_pet: False
+  use_pes: False
+  config: [ [ 64, 64, 16, 1 ], [ 64, 64, 16, 1 ],
+            [ 64, 128, 32, 2 ], [ 128, 128, 32, 1 ],
+            [ 128, 256, 64, 2 ], [ 256, 256, 64, 1 ],
+            [ 256, 256, 64, 1 ], [ 256, 256, 64, 1 ],
+  ]
+
+# head_param is for build_head
+head_param:
+  type: 'GCNHead'
+  num_classes: 7
+  in_channels: 256
+
+# optimizer_param is for build_optimizer
+optimizer_param:
+  optim_type: 'adam'
+  lr: 0.0001
+  wd: 0
+
+# training_param is for class TrainingEngine
+training_param:
+  dataloader_datatype: 'N1TW'
+  model_datatype: 'N1T3S'
+  max_epoch: 100
+  val_frequency: 1
+  save_frequency: 1
+
+
+

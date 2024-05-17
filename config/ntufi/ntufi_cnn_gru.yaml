@@ -1,0 +1,55 @@
+debug: False
+
+output_path:
+pretrained_model:
+device_id: [ 0 ]
+cuda_visible_device: '0'
+
+# loss_function
+loss: 'cross_entropy'
+
+data_param:
+  type: "NTU_Fi"
+  class_num: 6
+  batch_size: 16
+  workers: 0
+  pin_memory: False
+  drop_last: True
+  dataset_mode: ["train", "val"]
+
+  train_data_param:
+    data_path: /media/sda/datasets/NTU-Fi_HAR/train_amp
+
+  val_data_param:
+    data_path: /media/sda/datasets/NTU-Fi_HAR/test_amp
+
+# model_param is for build_model
+model_param:
+  type: 'UT_HAR_CNN_GRU'
+  input_T: 500
+  input_S: 342 # 114 * 3
+  gru_input_size: 50
+  gru_hidden_size: 256
+
+# head_param is for build_head
+head_param:
+  type: 'SimpleHead'
+  num_classes: 6
+  in_channels: 256
+
+# optimizer_param is for build_optimizer
+optimizer_param:
+  optim_type: 'adam'
+  lr: 0.0001
+  wd: 0
+
+# training_param is for class TrainingEngine
+training_param:
+  dataloader_datatype: 'NAST'
+  model_datatype: 'NTW'
+  max_epoch: 100
+  val_frequency: 1
+  save_frequency: 1
+
+
+

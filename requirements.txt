@@ -1,0 +1,16 @@
+colorama==0.4.6
+decord==0.6.0
+easydict==1.11
+einops==0.7.0
+fvcore==0.1.5.post20221221
+mmcv==2.1.0
+numpy==1.21.6
+pymemcache==4.0.0
+PyYAML==6.0.1
+PyYAML==6.0.1
+Requests==2.31.0
+scipy==1.7.3
+torch==1.13.0+cu117
+torchvision==0.14.0+cu117
+tqdm==4.66.1
+utility==1.0
