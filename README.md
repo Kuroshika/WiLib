@@ -66,6 +66,7 @@ The example configurations are under the 'config' directory.
         <th>Dataset Name</th>
         <th>Paper</th>
         <th>Data resource</th>
+        <th>Benchmark</th>
     </tr>
     </thead>
     <tbody>
