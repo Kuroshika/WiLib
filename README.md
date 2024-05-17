@@ -1,4 +1,4 @@
-# WiLib (Name For Now)
+# WiLib
 
 A toolbox to test deeplearning models on Wi-Fi Human Recognition.
 
@@ -72,13 +72,19 @@ The example configurations are under the 'config' directory.
     <tr>
         <td>UT-HAR</td>
         <td><a href="https://ieeexplore.ieee.org/document/8067693">A Survey on Behavior Recognition Using WiFi Channel State Information</a></td>
-        <td><a>https://drive.google.com/drive/folders/1R0R8SlVbLI1iUFQCzh_mH90H_4CW2iwt</a></td>
+        <td><a href="https://drive.google.com/drive/folders/1R0R8SlVbLI1iUFQCzh_mH90H_4CW2iwt">Downloading URL</a></td>
 </tr>
 <tr>
         <td>NTU-Fi HAR</td>
         <td><a href="https://arxiv.org/abs/2207.07859">
             SenseFi: A Library and Benchmark on Deep-Learning-Empowered WiFi Human Sensing</a></td>
-        <td><a>https://drive.google.com/drive/folders/1R0R8SlVbLI1iUFQCzh_mH90H_4CW2iwt</a></td>
+        <td><a href="https://drive.google.com/drive/folders/1R0R8SlVbLI1iUFQCzh_mH90H_4CW2iwt">Downloading URL</a></td>
+</tr>
+<tr>
+        <td>MM-Fi</td>
+        <td><a href="https://arxiv.org/abs/2305.10345">
+            MM-Fi: Multi-Modal Non-Intrusive 4D Human Dataset for Versatile Wireless Sensing</a></td>
+        <td><a href="https://github.com/ybhbingo/MMFi_dataset">Downloading URL</a></td>
 </tr>
     </tbody>
 </table>

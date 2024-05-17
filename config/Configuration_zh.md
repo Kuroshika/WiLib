@@ -1,7 +1,7 @@
 # 配置文件
-> @author 黄雷  
+> @author kuroshika  
 > @E-mail huanglei701@126.com  
-> @Date 2023/12/01
+> @Date 2023/12/01 
 
 ## 文件结构
 
