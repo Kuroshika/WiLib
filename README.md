@@ -94,7 +94,7 @@ The example configurations are under the 'config' directory.
         <td><a href="https://arxiv.org/abs/2305.10345">
             MM-Fi: Multi-Modal Non-Intrusive 4D Human Dataset for Versatile Wireless Sensing</a></td>
         <td><a href="https://github.com/ybhbingo/MMFi_dataset">Downloading URL</a></td>
-<td><a href="https://github.com/Kuroshika/WiLib/blob/master/doc/benchmark/MM-Fi.md"> MM-Fi Benchmark</a></td>
+<td><a href="https://github.com/Kuroshika/WiLib/blob/master/doc/benchmark/MM_Fi.md"> MM-Fi Benchmark</a></td>
 </tr>
     </tbody>
 </table>
