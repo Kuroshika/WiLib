@@ -29,7 +29,7 @@ data_param:
 # model
 model_param:
   type: 'KAN'
-  layers_hidden: [90, 128, 128]
+  layers_hidden: [90,128]
   input_T: 250
   input_S: 90
 # head_param is for build_head
