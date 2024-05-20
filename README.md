@@ -59,7 +59,7 @@ The example configurations are under the 'config' directory.
         <td>KAN</td>
         <td><a href="https://arxiv.org/abs/2404.19756">
             KAN: Kolmogorov-Arnold Networks</a></td>
-        <td><a href="https://github.com/kennymckormick/pyskl">https://github.com/kennymckormick/pyskl</a></td>
+        <td><a href="https://github.com/Blealtan/efficient-kan">https://github.com/Blealtan/efficient-kan</a></td>
     </tr>
     </tbody>
 </table>
