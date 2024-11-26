@@ -1,0 +1,13 @@
+# Ignore the Data Dir
+data/
+config/mmfi/
+config/ntufi/
+config/ut/
+.idea/
+
+
+# Ignore the File Type
+*.zip
+*.tar.gz
+*.7z
+*.txt
