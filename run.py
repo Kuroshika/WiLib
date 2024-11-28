@@ -1,45 +1,33 @@
 import torch.nn as nn
 import torch
-from builder.builder import ModelRegistry, DatasetRegistry, HeadRegistry
-from builder.builder import build_model, build_dataset, build_loss, build_optimizer, build_head
+import builder
 from engine.training_engine import TrainingEngine
-from utils import parser_args
-from utils.base_util import init_seeds
-from utils.load_checkpoint import load_from_pretrained_model
-from utils.log import TimerBlock
-import dataset.mmfi as mmfi
+import utils
+import dataset
+import model
 
 torch.backends.cudnn.enable = False
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
-"""
-Importing these module is important because of the registry, although they seem like useless.
-You need to import the module which include the model network that you wanna use.   
-"""
-from model.sensefi import UT_HAR_model
-from model.skl import stgcn, stgat
-from model.that import that
-from model.KAN import kan
-from dataset import ntu_fi
-from dataset import ut_har_dataset
-from model.heads import simple_head
 
-with TimerBlock("start") as block:
+
+with utils.log.TimerBlock("start") as block:
     """
     Here is the script to train the model.
     """
-    init_seeds()
+    utils.init_seeds()
 
-    args = parser_args.parser_args(block)
+    args = utils.parser_args.parser_args(block)
 
     # 设置模型 数据集 优化器 损失函数
-    model = build_model(cfg=args.model_param, registry=ModelRegistry)
+    model = builder.build_model(cfg=args.model_param, registry=builder.ModelRegistry)
 
     # load checkpoint might not work, which has not been tested.
-    load_from_pretrained_model(model, block, args)
+    utils.load_checkpoint.load_from_pretrained_model(model, block, args)
 
     ## MMFi的数据处理太过麻烦没有直接用注册器生成实例
     if args.data_param["type"] == "MMFi":
+        import dataset.mmfi as mmfi
         config = args.data_param
         dataset_root = config["dataset_root"]
         train_dataset, val_dataset = mmfi.make_dataset(dataset_root, config)
@@ -49,17 +37,17 @@ with TimerBlock("start") as block:
         val_loader = mmfi.make_dataloader(val_dataset, is_training=False, generator=rng_generator,
                                           **config['validation_loader'])
     else:
-        dataloaders = build_dataset(cfg=args.data_param, block=block, registry=DatasetRegistry)
+        dataloaders = builder.build_dataset(cfg=args.data_param, block=block, registry=builder.DatasetRegistry)
         train_loader = dataloaders['train']
         val_loader = dataloaders['val']
 
     # signal_pipeline = build_signal_pipeline()
 
-    head = build_head(cfg=args.head_param, registry=HeadRegistry)
+    head = builder.build_head(cfg=args.head_param, registry=builder.HeadRegistry)
 
-    optimizer = build_optimizer(model, head, block=block, **args.optimizer_param)
+    optimizer = builder.build_optimizer(model, head, block=block, **args.optimizer_param)
 
-    loss_function = build_loss(args.loss)
+    loss_function = builder.build_loss(args.loss)
 
     model.cuda()
     head.cuda()

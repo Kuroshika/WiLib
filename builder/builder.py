@@ -10,7 +10,7 @@ from builder.registry import Registry
 
 import argparse
 
-from model import *
+
 
 ModelRegistry = Registry('model')
 OptimRegistry = Registry('optim')
