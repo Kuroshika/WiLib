@@ -1,7 +1,8 @@
 import torch.nn as nn
 import torch
 import builder
-from engine.training_engine import TrainingEngine
+from engine.training_engine import SupervisedTrainingEngine
+from engine.pretraining_engine import PretrainingEngine
 import utils
 import dataset
 import model
@@ -20,10 +21,6 @@ with utils.log.TimerBlock("start") as block:
     args = utils.parser_args.parser_args(block)
 
     # 设置模型 数据集 优化器 损失函数
-    model = builder.build_model(cfg=args.model_param, registry=builder.ModelRegistry)
-
-    # load checkpoint might not work, which has not been tested.
-    utils.load_checkpoint.load_from_pretrained_model(model, block, args)
 
     ## MMFi的数据处理太过麻烦没有直接用注册器生成实例
     if args.data_param["type"] == "MMFi":
@@ -41,23 +38,48 @@ with utils.log.TimerBlock("start") as block:
         train_loader = dataloaders['train']
         val_loader = dataloaders['val']
 
-    # signal_pipeline = build_signal_pipeline()
 
-    head = builder.build_head(cfg=args.head_param, registry=builder.HeadRegistry)
+    if args.run_mode == "train_val":
+        model = builder.build_model(cfg=args.model_param, registry=builder.ModelRegistry)
 
-    optimizer = builder.build_optimizer(model, head, block=block, **args.optimizer_param)
+        # load checkpoint might not work, which has not been tested.
+        utils.load_checkpoint.load_from_pretrained_model(model, block, args)
 
-    loss_function = builder.build_loss(args.loss)
+        head = builder.build_head(cfg=args.head_param, registry=builder.HeadRegistry)
 
-    model.cuda()
-    head.cuda()
-    model = nn.DataParallel(model, device_ids=args.device_id)
-    head = nn.DataParallel(head, device_ids=args.device_id)
-    block.log('copy model to gpu')
+        optimizer = builder.build_optimizer(model, head, block=block, **args.optimizer_param)
 
-    engine = TrainingEngine(block=block, model=model, head=head, optimizer=optimizer, loss_function=loss_function,
-                            train_loader=train_loader, val_loader=val_loader, model_save_path=args.output_path,
-                            **args.training_param)
+        loss_function = builder.build_loss(args.loss)
 
+        model.cuda()
+        head.cuda()
+        model = nn.DataParallel(model, device_ids=args.device_id)
+        head = nn.DataParallel(head, device_ids=args.device_id)
+        block.log('copy model to gpu')
+
+        engine = SupervisedTrainingEngine(
+            block=block, 
+            model=model, 
+            head=head, 
+            optimizer=optimizer, 
+            loss_function=loss_function,
+            train_loader=train_loader, 
+            val_loader=val_loader, 
+            model_save_path=args.output_path,
+            **args.training_param
+        )
+        
+    elif args.run_mode=="pretrain":
+        from pretrain.method.simclr import SimCLR
+        method = SimCLR()
+        engine = PretrainingEngine(
+            block=block,
+            method=method,
+            train_loader=train_loader, 
+            val_loader=val_loader, 
+            model_save_path=args.output_path,
+            **args.training_param
+        )
+        
     assert args.run_mode in engine.run_modes
     getattr(engine, args.run_mode, None)()
