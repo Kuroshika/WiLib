@@ -39,32 +39,32 @@ def parser_args(block):
     # params
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-run_mode', default='train_val')
+    parser.add_argument('--run_mode', default='train_val')
 
     # This is a path to the config file which could cover the default args
-    parser.add_argument('-config', default='./config/ut_that.yaml')
+    parser.add_argument('--config', default='./config/ut_that.yaml')
 
     # set this symbal False to disable the debug mode
     # F, f, False, false all can work well which is defined in function str2bool() above.
-    parser.add_argument('-debug', type=str2bool, default=False)
+    parser.add_argument('--debug', type=str2bool, default=False)
 
     # These params are related to the builder which could build module from these param config
-    parser.add_argument('-loss', default='cross_entropy')
-    parser.add_argument('-model_param', default={})
-    parser.add_argument('-head_param', default={})
-    parser.add_argument('-training_param', default={})
-    parser.add_argument('-optimizer_param', default='sgd_nev')
-    parser.add_argument('-data_param', default={})
+    parser.add_argument('--loss', default='cross_entropy')
+    parser.add_argument('--model_param', default={})
+    parser.add_argument('--head_param', default={})
+    parser.add_argument('--training_param', default={})
+    parser.add_argument('--optimizer_param', default='sgd_nev')
+    parser.add_argument('--data_param', default={})
 
     # param about devices
-    parser.add_argument('-device_id', default=[0])
-    parser.add_argument('-cuda_visible_device', default='0')
+    parser.add_argument('--device_id', default=[0])
+    parser.add_argument('--cuda_visible_device', default='0')
 
     # output path to the exact dir, also you can set it None to let the code generate a default path
-    parser.add_argument('-output_path', default=None)
+    parser.add_argument('--output_path', default=None)
 
     # load checkpoint from here
-    parser.add_argument('-pretrained_model', default=None)
+    parser.add_argument('--pretrained_model', default=None)
 
     p = parser.parse_args()
 
