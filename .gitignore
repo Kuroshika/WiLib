@@ -4,6 +4,11 @@ config/mmfi/
 config/ntufi/
 config/ut/
 .idea/
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+outputs/
+.vscode/
 
 
 # Ignore the File Type

@@ -18,10 +18,10 @@ data_param:
   dataset_mode: ["train", "val"]
 
   train_data_param:
-    data_path: /media/sda/datasets/NTU-Fi_HAR/train_amp
+    data_path: /home/bingoner/WiLib/data/NTU-Fi_HAR/train_amp
 
   val_data_param:
-    data_path: /media/sda/datasets/NTU-Fi_HAR/test_amp
+    data_path: /home/bingoner/WiLib/data/NTU-Fi_HAR/test_amp
 
 # model_param is for build_model
 model_param:
