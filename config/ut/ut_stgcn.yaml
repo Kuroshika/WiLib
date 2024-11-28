@@ -18,11 +18,11 @@ data_param:
   dataset_mode: [ "train", "val" ]
 
   train_data_param:
-    data_path: /home/bingoner/WiLib/data/UT_HAR/data
-    label_path: /home/bingoner/WiLib/data/UT_HAR/label
+    data_path: /home/data/UT_HAR/data
+    label_path: /home/data/UT_HAR/label
   val_data_param:
-    data_path: /home/bingoner/WiLib/data/UT_HAR/data
-    label_path: /home/bingoner/WiLib/data/UT_HAR/label
+    data_path: /home/data/UT_HAR/data
+    label_path: /home/data/UT_HAR/label
 
 # model_param is for build_model
 model_param:
