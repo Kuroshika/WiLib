@@ -4,42 +4,25 @@ from utils.log import IteratorTimer
 import os
 from torch.utils.tensorboard import SummaryWriter
 import time
-
-
 class TrainingEngine:
-    def __init__(self, model, head, optimizer, loss_function, train_loader, max_epoch,
-                 dataloader_datatype, model_datatype,
-                 block=None, val_loader=None, test_loader=None,
-                 model_save_path=None, save_frequency: int = 1, val_frequency: int = 1,
-                 ):
-        self.model = model
-        self.head = head
-        self.optimizer = optimizer
-        self.loss_function = loss_function
-        self.save_frequency = save_frequency
-        self.dataloader_datatype = dataloader_datatype
-        self.model_datatype = model_datatype
+    def __init__(self):
+        pass
 
-        self.block = block
-        self.val_frequency = val_frequency
+    def save_model(self, is_best=False):
+        if is_best:
+            model_name = f"model_best.pth"
+        else:
+            model_name = f"model_last.pth"
+        torch.save(self.model.state_dict(), os.path.join(self.model_save_path, model_name))
 
-        self.memory = {}
-        assert model_save_path is not None
-        self.model_save_path = model_save_path
 
-        self.max_epoch = max_epoch
-        self.epoch_now = 0
+    def convert_to_tensor(self, data):
+        if type(data) == torch.Tensor:
+            return data
+        else:
+            return torch.Tensor(data)
 
-        self.train_loader = train_loader
-        self.val_loader = val_loader
-        self.test_loader = test_loader
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        self.summary_writer = SummaryWriter(self.model_save_path)
-
-        self.run_modes = ("train_val",)
-
-    def _log(self, log_info):
+    def log(self, log_info):
         assert self.block is not None, "Training Engine has no block!"
         assert type(log_info) in (dict, str)
         if isinstance(log_info, str):
@@ -50,13 +33,7 @@ class TrainingEngine:
                 info_str += f"{key}:{value}, "
         self.block.log(info_str)
 
-    def _convert_to_tensor(self, data):
-        if type(data) == torch.Tensor:
-            return data
-        else:
-            return torch.Tensor(data)
-
-    def _align_data_with_model(self, inputs):
+    def align_data_with_model(self, inputs):
         # d_type = self.dataloader_datatype.split(',')
         # m_type = self.model_datatype.split(',')
         #
@@ -90,6 +67,9 @@ class TrainingEngine:
             elif m_type == "N*":
                 inputs = inputs.view(N, T * W)
                 return inputs
+            elif m_type == "N3TS":
+                inputs = inputs.view(N,  T, 3,-1).permute(0,2,1,3)
+                return inputs
 
         elif d_type == "NAST":
             if m_type == "NTW":
@@ -104,8 +84,42 @@ class TrainingEngine:
 
         raise Exception("Data type has not been aligned!")
 
-    def _train_epoch(self, epoch):
 
+class SupervisedTrainingEngine(TrainingEngine):
+    def __init__(self, model, head, optimizer, loss_function, train_loader, max_epoch,
+                 dataloader_datatype, model_datatype,
+                 block=None, val_loader=None, test_loader=None,
+                 model_save_path=None, save_frequency: int = 1, val_frequency: int = 1,
+                 ):
+        self.model = model
+        self.head = head
+        self.optimizer = optimizer
+        self.loss_function = loss_function
+        self.save_frequency = save_frequency
+        self.dataloader_datatype = dataloader_datatype
+        self.model_datatype = model_datatype
+
+        self.block = block
+        self.val_frequency = val_frequency
+
+        self.memory = {}
+        assert model_save_path is not None
+        self.model_save_path = model_save_path
+
+        self.max_epoch = max_epoch
+        self.epoch_now = 0
+
+        self.train_loader = train_loader
+        self.val_loader = val_loader
+        self.test_loader = test_loader
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        self.summary_writer = SummaryWriter(self.model_save_path)
+
+        self.run_modes = ("train_val")
+
+
+    def train_epoch(self, epoch):
         self.model.train()
         right_num_total = 0
         total_num = 0
@@ -114,12 +128,12 @@ class TrainingEngine:
         process = tqdm(IteratorTimer(self.train_loader), desc='Train: ')
 
         for index, (inputs, labels) in enumerate(process):
-            inputs = self._convert_to_tensor(inputs)
-            labels = self._convert_to_tensor(labels)
+            inputs = self.convert_to_tensor(inputs)
+            labels = self.convert_to_tensor(labels)
             inputs = inputs.to(self.device)
             labels = labels.type(torch.LongTensor).to(self.device)
 
-            inputs = self._align_data_with_model(inputs)
+            inputs = self.align_data_with_model(inputs)
 
             # self.summary_writer.add_graph(self.model, inputs)
             outputs = self.model(inputs)
@@ -154,9 +168,8 @@ class TrainingEngine:
         self.summary_writer.add_scalar('train_loss', loss, epoch)
         self.summary_writer.add_scalar('train_acc', accuracy, epoch)
 
-    def _val_epoch(self, epoch):
+    def val_epoch(self, epoch):
         self.model.eval()
-
         right_num_total = 0
         total_num = 0
         loss_total = 0
@@ -164,12 +177,12 @@ class TrainingEngine:
         process = tqdm(IteratorTimer(self.val_loader), desc='Val: ')
         with torch.no_grad():
             for index, (inputs, labels) in enumerate(process):
-                inputs = self._convert_to_tensor(inputs)
-                labels = self._convert_to_tensor(labels)
+                inputs = self.convert_to_tensor(inputs)
                 inputs = inputs.to(self.device)
-                labels = labels.type(torch.LongTensor).to(self.device)
+                inputs = self.align_data_with_model(inputs)
 
-                inputs = self._align_data_with_model(inputs)
+                labels = self.convert_to_tensor(labels)
+                labels = labels.type(torch.LongTensor).to(self.device)
 
                 outputs = self.model(inputs)
                 outputs = self.head(outputs)
@@ -212,7 +225,7 @@ class TrainingEngine:
 
         return log_info
 
-    def _save_model(self, is_best=False):
+    def save_model(self, is_best=False):
         if is_best:
             model_name = f"model_best.pth"
         else:
@@ -223,18 +236,22 @@ class TrainingEngine:
         self.memory['best_acc'] = 0
         for epoch in range(self.max_epoch):
             self.epoch_now = epoch
-            self._log(f"Begin to train for epoch[{epoch}]")
-            self._train_epoch(epoch)
-            self._log(f"Finish training for epoch[{epoch}]")
+            self.log(f"Begin to train for epoch[{epoch}]")
+            self.train_epoch(epoch)
+            self.log(f"Finish training for epoch[{epoch}]")
             if (epoch + 1) % self.val_frequency == 0:
-                self._log(f"Begin to val for epoch[{epoch}]")
-                log_info = self._val_epoch(epoch)
-                self._log(log_info)
+                self.log(f"Begin to val for epoch[{epoch}]")
+                log_info = self.val_epoch(epoch)
+                self.log(log_info)
                 if log_info["is_best"]:
-                    self._save_model(is_best=True)
+                    self.save_model(is_best=True)
             else:
-                self._log(f"Skip val for epoch[{epoch}]")
-                self._log("\n")
+                self.log(f"Skip val for epoch[{epoch}]")
+                self.log("\n")
 
             if (epoch + 1) % self.save_frequency == 0:
-                self._save_model(is_best=False)
+                self.save_model(is_best=False)
+    
+
+    
+

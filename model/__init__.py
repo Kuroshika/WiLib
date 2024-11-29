@@ -10,3 +10,5 @@ from model.that import that
 from model.KAN import kan
 
 from model.heads import simple_head
+
+from pretrain.method.simclr import SimCLR

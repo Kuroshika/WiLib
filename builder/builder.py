@@ -87,6 +87,9 @@ def build_loss(loss_name='cross_entropy'):
     loss_function = None
     if loss_name == 'cross_entropy':
         loss_function = torch.nn.CrossEntropyLoss()
+    elif loss_name =='sim_loss':
+        import loss
+        loss_function = loss.SimLoss()
     else:
         raise Exception(f"The loss function [{loss_name}] is not supported!")
 
@@ -131,6 +134,23 @@ def build_head(cfg, registry, default_args=None):
     if obj_type == "no_head":
         return None
 
+    if isinstance(obj_type, str):
+        obj_cls = registry.get(obj_type)  # 根据字段从Registry中索引出类
+        if obj_cls is None:
+            raise KeyError(
+                f'{obj_type} is not in the {registry.name} registry')
+    elif inspect.isclass(obj_type):
+        obj_cls = obj_type
+    else:
+        raise TypeError(
+            f'type must be a str or valid type, but got {type(obj_type)}')
+
+    return obj_cls(**args)  # 完成类的初始化
+
+def build_pretrain_method(cfg, registry, default_args=None):
+    args = cfg.copy()
+    obj_type = args.pop('type')  # 从配置文件中索引出type字段对应的obj
+    
     if isinstance(obj_type, str):
         obj_cls = registry.get(obj_type)  # 根据字段从Registry中索引出类
         if obj_cls is None:
