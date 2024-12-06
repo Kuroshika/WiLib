@@ -81,5 +81,8 @@ with utils.log.TimerBlock("start") as block:
             **args.training_param
         )
         
+    elif args.run_mode=="finetune":
+        pass
+        
     assert args.run_mode in engine.run_modes
     getattr(engine, args.run_mode, None)()
