@@ -4,20 +4,21 @@ from utils.log import IteratorTimer
 import os
 from torch.utils.tensorboard import SummaryWriter
 import time
+
+
 class TrainingEngine:
     def __init__(self):
         pass
 
     def save_model(self, is_best=False):
         if is_best:
-            model_name = f"model_best.pth"
+            model_name = "model_best.pth"
         else:
-            model_name = f"model_last.pth"
+            model_name = "model_last.pth"
         torch.save(self.model.state_dict(), os.path.join(self.model_save_path, model_name))
 
-
     def convert_to_tensor(self, data):
-        if type(data) == torch.Tensor:
+        if type(data) is torch.Tensor:
             return data
         else:
             return torch.Tensor(data)
@@ -28,7 +29,7 @@ class TrainingEngine:
         if isinstance(log_info, str):
             info_str = log_info
         elif isinstance(log_info, dict):
-            info_str = ''
+            info_str = ""
             for key, value in log_info.items():
                 info_str += f"{key}:{value}, "
         self.block.log(info_str)
@@ -68,7 +69,7 @@ class TrainingEngine:
                 inputs = inputs.view(N, T * W)
                 return inputs
             elif m_type == "N3TS":
-                inputs = inputs.view(N,  T, 3,-1).permute(0,2,1,3)
+                inputs = inputs.view(N, T, 3, -1).permute(0, 2, 1, 3)
                 return inputs
 
         elif d_type == "NAST":
@@ -86,11 +87,23 @@ class TrainingEngine:
 
 
 class SupervisedTrainingEngine(TrainingEngine):
-    def __init__(self, model, head, optimizer, loss_function, train_loader, max_epoch,
-                 dataloader_datatype, model_datatype,
-                 block=None, val_loader=None, test_loader=None,
-                 model_save_path=None, save_frequency: int = 1, val_frequency: int = 1,
-                 ):
+    def __init__(
+        self,
+        model,
+        head,
+        optimizer,
+        loss_function,
+        train_loader,
+        max_epoch,
+        dataloader_datatype,
+        model_datatype,
+        block=None,
+        val_loader=None,
+        test_loader=None,
+        model_save_path=None,
+        save_frequency: int = 1,
+        val_frequency: int = 1,
+    ):
         self.model = model
         self.head = head
         self.optimizer = optimizer
@@ -116,8 +129,7 @@ class SupervisedTrainingEngine(TrainingEngine):
 
         self.summary_writer = SummaryWriter(self.model_save_path)
 
-        self.run_modes = ("train_val")
-
+        self.run_modes = "train_val"
 
     def train_epoch(self, epoch):
         self.model.train()
@@ -125,7 +137,7 @@ class SupervisedTrainingEngine(TrainingEngine):
         total_num = 0
         loss_total = 0
         step = 0
-        process = tqdm(IteratorTimer(self.train_loader), desc='Train: ')
+        process = tqdm(IteratorTimer(self.train_loader), desc="Train: ")
 
         for index, (inputs, labels) in enumerate(process):
             inputs = self.convert_to_tensor(inputs)
@@ -157,16 +169,15 @@ class SupervisedTrainingEngine(TrainingEngine):
             loss_total += ls
             step += 1
             process.set_description(
-                'Train: epoch:{} acc: {:4f}, loss: {:4f}, batch time: {:4f}'.format(epoch, acc, ls,
-                                                                                    process.iterable.last_duration,
-                                                                                    ))
+                f"Train: epoch:{epoch} acc: {acc:4f}, loss: {ls:4f}, batch time: {process.iterable.last_duration:4f}"
+            )
 
         process.close()
         loss = loss_total / step
         accuracy = right_num_total / total_num
 
-        self.summary_writer.add_scalar('train_loss', loss, epoch)
-        self.summary_writer.add_scalar('train_acc', accuracy, epoch)
+        self.summary_writer.add_scalar("train_loss", loss, epoch)
+        self.summary_writer.add_scalar("train_acc", accuracy, epoch)
 
     def val_epoch(self, epoch):
         self.model.eval()
@@ -174,7 +185,7 @@ class SupervisedTrainingEngine(TrainingEngine):
         total_num = 0
         loss_total = 0
         step = 0
-        process = tqdm(IteratorTimer(self.val_loader), desc='Val: ')
+        process = tqdm(IteratorTimer(self.val_loader), desc="Val: ")
         with torch.no_grad():
             for index, (inputs, labels) in enumerate(process):
                 inputs = self.convert_to_tensor(inputs)
@@ -201,8 +212,7 @@ class SupervisedTrainingEngine(TrainingEngine):
                 total_num += batch_num
                 loss_total += ls
                 step += 1
-                process.set_description(
-                    'Val: acc: {:4f}, loss: {:4f}, time: {:4f}'.format(acc, ls, process.iterable.last_duration))
+                process.set_description(f"Val: acc: {acc:4f}, loss: {ls:4f}, time: {process.iterable.last_duration:4f}")
 
         process.close()
         loss = loss_total / step
@@ -220,20 +230,20 @@ class SupervisedTrainingEngine(TrainingEngine):
             "is_best": is_best,
         }
 
-        self.summary_writer.add_scalar('val_loss', loss, epoch)
-        self.summary_writer.add_scalar('val_acc', accuracy, epoch)
+        self.summary_writer.add_scalar("val_loss", loss, epoch)
+        self.summary_writer.add_scalar("val_acc", accuracy, epoch)
 
         return log_info
 
     def save_model(self, is_best=False):
         if is_best:
-            model_name = f"model_best.pth"
+            model_name = "model_best.pth"
         else:
-            model_name = f"model_last.pth"
+            model_name = "model_last.pth"
         torch.save(self.model.state_dict(), os.path.join(self.model_save_path, model_name))
 
     def train_val(self):
-        self.memory['best_acc'] = 0
+        self.memory["best_acc"] = 0
         for epoch in range(self.max_epoch):
             self.epoch_now = epoch
             self.log(f"Begin to train for epoch[{epoch}]")
@@ -251,7 +261,3 @@ class SupervisedTrainingEngine(TrainingEngine):
 
             if (epoch + 1) % self.save_frequency == 0:
                 self.save_model(is_best=False)
-    
-
-    
-

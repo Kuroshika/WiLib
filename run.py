@@ -25,19 +25,21 @@ with utils.log.TimerBlock("start") as block:
     ## MMFi的数据处理太过麻烦没有直接用注册器生成实例
     if args.data_param["type"] == "MMFi":
         import dataset.mmfi as mmfi
+
         config = args.data_param
         dataset_root = config["dataset_root"]
         train_dataset, val_dataset = mmfi.make_dataset(dataset_root, config)
-        rng_generator = torch.manual_seed(config['init_rand_seed'])
-        train_loader = mmfi.make_dataloader(train_dataset, is_training=True, generator=rng_generator,
-                                            **config['train_loader'])
-        val_loader = mmfi.make_dataloader(val_dataset, is_training=False, generator=rng_generator,
-                                          **config['validation_loader'])
+        rng_generator = torch.manual_seed(config["init_rand_seed"])
+        train_loader = mmfi.make_dataloader(
+            train_dataset, is_training=True, generator=rng_generator, **config["train_loader"]
+        )
+        val_loader = mmfi.make_dataloader(
+            val_dataset, is_training=False, generator=rng_generator, **config["validation_loader"]
+        )
     else:
         dataloaders = builder.build_dataset(cfg=args.data_param, block=block, registry=builder.DatasetRegistry)
-        train_loader = dataloaders['train']
-        val_loader = dataloaders['val']
-
+        train_loader = dataloaders["train"]
+        val_loader = dataloaders["val"]
 
     if args.run_mode == "train_val":
         model = builder.build_model(cfg=args.model_param, registry=builder.ModelRegistry)
@@ -55,31 +57,32 @@ with utils.log.TimerBlock("start") as block:
         head.cuda()
         model = nn.DataParallel(model, device_ids=args.device_id)
         head = nn.DataParallel(head, device_ids=args.device_id)
-        block.log('copy model to gpu')
+        block.log("copy model to gpu")
 
         engine = SupervisedTrainingEngine(
-            block=block, 
-            model=model, 
-            head=head, 
-            optimizer=optimizer, 
+            block=block,
+            model=model,
+            head=head,
+            optimizer=optimizer,
             loss_function=loss_function,
-            train_loader=train_loader, 
-            val_loader=val_loader, 
+            train_loader=train_loader,
+            val_loader=val_loader,
             model_save_path=args.output_path,
-            **args.training_param
+            **args.training_param,
         )
-        
-    elif args.run_mode=="pretrain":
+
+    elif args.run_mode == "pretrain":
         from pretrain.method.simclr import SimCLR
-        method = SimCLR()
+
+        method = SimCLR(**args.augmentation)
         engine = PretrainingEngine(
             block=block,
             method=method,
-            train_loader=train_loader, 
-            val_loader=val_loader, 
+            train_loader=train_loader,
+            val_loader=val_loader,
             model_save_path=args.output_path,
-            **args.training_param
+            **args.training_param,
         )
-        
+
     assert args.run_mode in engine.run_modes
     getattr(engine, args.run_mode, None)()

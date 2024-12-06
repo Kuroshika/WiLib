@@ -6,13 +6,23 @@ from torch.utils.tensorboard import SummaryWriter
 import time
 from .training_engine import TrainingEngine
 
+
 class PretrainingEngine(TrainingEngine):
-    def __init__(self, method, train_loader, max_epoch,
-                 dataloader_datatype, model_datatype,pretraining_method=None,
-                 block=None, val_loader=None, test_loader=None,
-                 model_save_path=None, save_frequency: int = 1, val_frequency: int = 1,
-                 ):
-        
+    def __init__(
+        self,
+        method,
+        train_loader,
+        max_epoch,
+        dataloader_datatype,
+        model_datatype,
+        pretraining_method=None,
+        block=None,
+        val_loader=None,
+        test_loader=None,
+        model_save_path=None,
+        save_frequency: int = 1,
+        val_frequency: int = 1,
+    ):
         super().__init__()
         self.method = method
         self.save_frequency = save_frequency
@@ -48,30 +58,22 @@ class PretrainingEngine(TrainingEngine):
 
         if (epoch + 1) % self.save_frequency == 0:
             self.__save_model(is_best=False)
-    
-    def pretrain_epoch(self,epoch):
-        loss_total = 0 
+
+    def pretrain_epoch(self, epoch):
+        loss_total = 0
         step = 0
-        process = tqdm(IteratorTimer(self.train_loader), desc='Train: ')
+        process = tqdm(IteratorTimer(self.train_loader), desc="Train: ")
         for index, (inputs, labels) in enumerate(process):
             inputs = self.convert_to_tensor(inputs)
             inputs = inputs.to(self.device)
             inputs = self.align_data_with_model(inputs)
+            # 修改该部分Method的传播逻辑
             ls = self.method.train(inputs)
-            loss_total =  loss_total+ls
+            loss_total = loss_total + ls
             step += 1
             process.set_description(
-                'Train: epoch:{} loss: {:4f}, batch time: {:4f}'.format(epoch, ls, 
-                                                                        process.iterable.last_duration,
-                                                                        ))
+                f"Train: epoch:{epoch} loss: {ls:4f}, batch time: {process.iterable.last_duration:4f}"
+            )
         process.close()
         loss = loss_total / step
-        self.summary_writer.add_scalar('train_loss', loss, epoch)
-
-
-    
-
-
-
-    
-
+        self.summary_writer.add_scalar("train_loss", loss, epoch)
