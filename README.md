@@ -17,7 +17,7 @@ pip install -r requirements.txt
 ## Run
 
 ```bash
-python ./run.py -config [path to config] -debug False
+python ./run.py --config [path to config] -debug False
 ```
 
 The example configurations are under the 'config' directory.
