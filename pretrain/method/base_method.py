@@ -1,5 +1,5 @@
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 class BaseMethod():
     def __init__():
         pass
