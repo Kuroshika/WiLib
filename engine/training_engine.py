@@ -5,16 +5,22 @@ import os
 from torch.utils.tensorboard import SummaryWriter
 import time
 
+"""
+This file provide the basic frame of the training engine. Include:
+1. Training Engine
+2. SupervisedTraining Engine: Include the traina and validation part.
+"""
+
 
 class TrainingEngine:
     def __init__(self):
         pass
 
-    def save_model(self, is_best=False):
+    def save_model(self, is_best=False, epoch=0):
         if is_best:
-            model_name = "model_best.pth"
+            model_name = f"{epoch}-model_best.pth"
         else:
-            model_name = "model_last.pth"
+            model_name = f"{epoch}-model_last.pth"
         torch.save(self.model.state_dict(), os.path.join(self.model_save_path, model_name))
 
     def convert_to_tensor(self, data):
@@ -235,13 +241,6 @@ class SupervisedTrainingEngine(TrainingEngine):
 
         return log_info
 
-    def save_model(self, is_best=False):
-        if is_best:
-            model_name = "model_best.pth"
-        else:
-            model_name = "model_last.pth"
-        torch.save(self.model.state_dict(), os.path.join(self.model_save_path, model_name))
-
     def train_val(self):
         self.memory["best_acc"] = 0
         for epoch in range(self.max_epoch):
@@ -254,7 +253,7 @@ class SupervisedTrainingEngine(TrainingEngine):
                 log_info = self.val_epoch(epoch)
                 self.log(log_info)
                 if log_info["is_best"]:
-                    self.save_model(is_best=True)
+                    self.save_model(is_best=True, epoch=epoch)
             else:
                 self.log(f"Skip val for epoch[{epoch}]")
                 self.log("\n")

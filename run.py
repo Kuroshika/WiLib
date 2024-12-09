@@ -3,6 +3,7 @@ import torch
 import builder
 from engine.training_engine import SupervisedTrainingEngine
 from engine.pretraining_engine import PretrainingEngine
+from engine.linear_eval_engine import LinearEvalEngine
 import utils
 import dataset
 import model
@@ -73,9 +74,26 @@ with utils.log.TimerBlock("start") as block:
 
     elif args.run_mode == "pretrain":
         from pretrain.method.simclr import SimCLR
+        from model.backbone.resnet import resnet_backbone
 
-        method = SimCLR(**args.augmentation)
+        backbone = resnet_backbone(pretrained=False)
+        method = SimCLR(backbone=backbone, **args.augmentation)
         engine = PretrainingEngine(
+            block=block,
+            method=method,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            model_save_path=args.output_path,
+            **args.training_param,
+        )
+
+    elif args.run_mode == "linear_eval":
+        from pretrain.method.simclr import SimCLR
+        from model.backbone.resnet import resnet_backbone
+
+        backbone = resnet_backbone(model_name="resnet18", pretrained=False)
+        method = SimCLR(backbone=backbone, **args.augmentation)
+        engine = LinearEvalEngine(
             block=block,
             method=method,
             train_loader=train_loader,

@@ -1,7 +1,4 @@
-from model.skl import (
-    stgcn, 
-    stgat
-)
+from model.skl import stgcn, stgat
 
 from model.sensefi import UT_HAR_model
 

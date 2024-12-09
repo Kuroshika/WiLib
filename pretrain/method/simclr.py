@@ -1,23 +1,32 @@
-import torch.nn as nn
+import os
+from unittest import main
+
 import torch
+import torch.nn as nn
 import torchvision
-from builder.builder import ModelRegistry
-from .base_method import BaseMethod
 from lightly.loss import NTXentLoss
 from lightly.models.modules import SimCLRProjectionHead
 from lightly.transforms.simclr_transform import SimCLRTransform
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
+from builder.builder import ModelRegistry
 from dataset.utils.Data_Augument import DataTransform
+
+from .base_method import BaseMethod
 
 
 class SimCLR(BaseMethod):
-    def __init__(self, **Aug_args):
+    def __init__(self, backbone=None, projection_head=None, **Aug_args):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        resnet = torchvision.models.resnet18()
         self.criterion = NTXentLoss()  # Use the Normalized Temperature-scaled Cross Entropy Loss.
-        self.backbone = nn.Sequential(*list(resnet.children())[:-1])
-        self.projection_head = SimCLRProjectionHead(input_dim=512, hidden_dim=512, output_dim=128, num_layers=3)
+        # resnet = torchvision.models.resnet18()
+        # self.backbone = nn.Sequential(*list(resnet.children())[:-1])
+        self.backbone = backbone
+        if projection_head is None:
+            self.projection_head = SimCLRProjectionHead(input_dim=512, hidden_dim=512, output_dim=128)
+        else:
+            self.projection_head = projection_head
+
         self.optimizer = torch.optim.SGD(
             [
                 {"params": self.backbone.parameters(), "lr": 0.06},

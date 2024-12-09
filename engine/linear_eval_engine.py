@@ -1,22 +1,18 @@
-import os
-import time
-
 import torch
-from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-
-import model
 from utils.log import IteratorTimer
-
+import os
+from torch.utils.tensorboard import SummaryWriter
+import time
 from .training_engine import TrainingEngine
 
 
-class PretrainingEngine(TrainingEngine):
+class LinearEvalEngine(TrainingEngine):
     def __init__(
         self,
         method,
         train_loader,
-        max_epoch,
+        linear_epoch,
         dataloader_datatype,
         model_datatype,
         pretraining_method=None,
@@ -29,7 +25,6 @@ class PretrainingEngine(TrainingEngine):
     ):
         super().__init__()
         self.method = method
-
         self.save_frequency = save_frequency
         self.dataloader_datatype = dataloader_datatype
         self.model_datatype = model_datatype
@@ -41,7 +36,7 @@ class PretrainingEngine(TrainingEngine):
         assert model_save_path is not None
         self.model_save_path = model_save_path
 
-        self.max_epoch = max_epoch
+        self.linear_epoch = linear_epoch
         self.epoch_now = 0
 
         self.train_loader = train_loader
@@ -53,24 +48,18 @@ class PretrainingEngine(TrainingEngine):
 
         self.run_modes = ("pretrain",)
 
-    def pretrain(self, val: bool = False):
-        for epoch in range(self.max_epoch):
-            self.epoch_now = epoch
+    def linear_eval(self):
+        for epoch in range(self.linear_epoch):
+            self.epoch_now = self.linear_epoch
             total_loss = 0
             self.log(f"Begin to train for epoch[{epoch}]")
             self.pretrain_epoch(epoch)
-            # if (epoch + 1) % self.val_frequency == 0:
-            #     self.log(f"Begin to val for the pretrain epoch[{epoch}]:")
-            #     log_info = self.val_epoch(epoch)
-            #     self.log(log_info)
-            #     if log_info["is_best"]:
-            #         self.method.save_model(is_best=True, epoch=epoch, model_save_path=self.model_save_path)
             self.log(f"Finish training for epoch[{epoch}]")
 
         if (epoch + 1) % self.save_frequency == 0:
-            self.method.save_model(is_best=False, epoch=epoch, model_save_path=self.model_save_path)
+            self.save_model(is_best=False)
 
-    def pretrain_epoch(self, epoch):
+    def pretrain_linear_epoch(self, epoch):
         loss_total = 0
         step = 0
         process = tqdm(IteratorTimer(self.train_loader), desc="Train: ")
