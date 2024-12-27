@@ -1,4 +1,5 @@
 import os
+import random
 from unittest import main
 
 import torch
@@ -16,31 +17,25 @@ from .base_method import BaseMethod
 
 
 class SimCLR(BaseMethod):
-    def __init__(self, backbone=None, projection_head=None, **Aug_args):
+    def __init__(self, backbone=None, projection_head=None, criterion=NTXentLoss(), linear_eval=False, **aug_args):
+        # super().__init__()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.criterion = NTXentLoss()  # Use the Normalized Temperature-scaled Cross Entropy Loss.
-        # resnet = torchvision.models.resnet18()
-        # self.backbone = nn.Sequential(*list(resnet.children())[:-1])
-        self.backbone = backbone
-        if projection_head is None:
-            self.projection_head = SimCLRProjectionHead(input_dim=512, hidden_dim=512, output_dim=128)
-        else:
-            self.projection_head = projection_head
+        self.augmentation = aug_args
+        self.linear_eval = linear_eval
 
-        self.optimizer = torch.optim.SGD(
-            [
-                {"params": self.backbone.parameters(), "lr": 0.06},
-                {"params": self.projection_head.parameters(), "lr": 0.06},
-            ],
-            weight_decay=1e-5,
-        )
+        # Initialize components and move them to the correct device.
+        self._initialize_components(backbone, projection_head)
+
+        # Set up the loss function.
+        self.criterion = criterion
+
+        # Configure optimizer based on whether we are in linear evaluation mode.
+        self._configure_optimizer(self.linear_eval)
+
         self.scheduler = CosineAnnealingLR(self.optimizer, T_max=10, eta_min=0.01)
         self.total_loss = 0
 
-        # todo: 添加transform
-        self.augmentation = Aug_args
-
-    def train(self, x):
+    def train_step(self, x):
         self.backbone.train()
         self.projection_head.train()
         self.backbone.to(self.device)
@@ -72,12 +67,63 @@ class SimCLR(BaseMethod):
         self.optimizer.zero_grad()
         return loss
 
-    def predict(self, x):
-        self.backbone.to(self.device)
-        return self.backbone(x)
+    # TODO: Check the linear predict function, add it and the import the loss function to the linear eval engine.
+    def linear_predict(self, x, mode=None):
+        if not self.linear_eval:
+            raise RuntimeError("Linear evaluation mode is not enabled.")
+        self.backbone.eval()
+        self.classifier.train() if mode == "train" else self.classifier.eval()
+        with torch.no_grad():  # Disable gradient calculation during prediction.
+            # This code is just test for the UT-HAR dataset
+            x = x.view(-1, 250, 3, 30)  # (batch_size, 250, 3, 30)
+            # The augument part
+            x = x.view(-1, 250, 3 * 30)
+            x = x.permute(0, 2, 1)
+            x = DataTransform(x, self.augmentation, type=random.choice(["weak", "strong"]))
+
+            x = self.convert_to_tensor(x.reshape(-1, 3, 30, 250)).to(device=self.device, dtype=torch.float32)
+            x = x.permute(0, 1, 3, 2)  # (batch_size, 3, 250, 30)
+            features = self.backbone(x.to(self.device)).squeeze()
+
+        predictions = self.classifier(features)
+        return predictions
 
     def convert_to_tensor(self, data):
-        if type(data) is torch.Tensor:
-            return data.float()
+        return (
+            torch.tensor(data, dtype=torch.float32, device=self.device)
+            if not isinstance(data, torch.Tensor)
+            else data.to(self.device)
+        )
+
+    def _initialize_components(self, backbone, projection_head):
+        """Initialize model components and move them to the correct device."""
+        self.backbone = backbone.to(self.device) if backbone is not None else None
+        self.projection_head = (
+            projection_head.to(self.device)
+            if projection_head is not None
+            else SimCLRProjectionHead(input_dim=512, hidden_dim=512, output_dim=128).to(self.device)
+        )
+
+    def _configure_optimizer(self, linear_eval):
+        """Configure the optimizer depending on whether linear evaluation is enabled."""
+        if linear_eval:
+            self.classifier = LinearClassifier(512, 7, self.device)
+            for param in self.backbone.parameters():
+                param.requires_grad = False
+            params = [{"params": self.classifier.parameters(), "lr": 0.06}]
+            self.optimizer = torch.optim.Adam(params, weight_decay=1e-5)
         else:
-            return torch.Tensor(data).float()
+            params = [
+                {"params": self.backbone.parameters(), "lr": 0.06},
+                {"params": self.projection_head.parameters(), "lr": 0.06},
+            ]
+            self.optimizer = torch.optim.SGD(params, weight_decay=1e-5)
+
+
+class LinearClassifier(nn.Module):
+    def __init__(self, input_dim, num_classes, device):
+        super().__init__()
+        self.fc = nn.Linear(input_dim, num_classes).to(device)
+
+    def forward(self, x):
+        return self.fc(x)

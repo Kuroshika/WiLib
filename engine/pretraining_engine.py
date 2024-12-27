@@ -19,7 +19,6 @@ class PretrainingEngine(TrainingEngine):
         max_epoch,
         dataloader_datatype,
         model_datatype,
-        pretraining_method=None,
         block=None,
         val_loader=None,
         test_loader=None,
@@ -79,7 +78,7 @@ class PretrainingEngine(TrainingEngine):
             inputs = inputs.to(self.device)
             inputs = self.align_data_with_model(inputs)
             # 修改该部分Method的传播逻辑
-            ls = self.method.train(inputs)
+            ls = self.method.train_step(inputs)
             loss_total = loss_total + ls
             step += 1
             process.set_description(
