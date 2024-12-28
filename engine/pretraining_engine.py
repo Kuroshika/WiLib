@@ -1,9 +1,13 @@
-import torch
-from tqdm import tqdm
-from utils.log import IteratorTimer
 import os
-from torch.utils.tensorboard import SummaryWriter
 import time
+
+import torch
+from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
+
+import model
+from utils.log import IteratorTimer
+
 from .training_engine import TrainingEngine
 
 
@@ -15,7 +19,6 @@ class PretrainingEngine(TrainingEngine):
         max_epoch,
         dataloader_datatype,
         model_datatype,
-        pretraining_method=None,
         block=None,
         val_loader=None,
         test_loader=None,
@@ -25,6 +28,7 @@ class PretrainingEngine(TrainingEngine):
     ):
         super().__init__()
         self.method = method
+
         self.save_frequency = save_frequency
         self.dataloader_datatype = dataloader_datatype
         self.model_datatype = model_datatype
@@ -48,16 +52,22 @@ class PretrainingEngine(TrainingEngine):
 
         self.run_modes = ("pretrain",)
 
-    def pretrain(self):
+    def pretrain(self, val: bool = False):
         for epoch in range(self.max_epoch):
             self.epoch_now = epoch
             total_loss = 0
             self.log(f"Begin to train for epoch[{epoch}]")
             self.pretrain_epoch(epoch)
+            # if (epoch + 1) % self.val_frequency == 0:
+            #     self.log(f"Begin to val for the pretrain epoch[{epoch}]:")
+            #     log_info = self.val_epoch(epoch)
+            #     self.log(log_info)
+            #     if log_info["is_best"]:
+            #         self.method.save_model(is_best=True, epoch=epoch, model_save_path=self.model_save_path)
             self.log(f"Finish training for epoch[{epoch}]")
 
         if (epoch + 1) % self.save_frequency == 0:
-            self.__save_model(is_best=False)
+            self.method.save_model(is_best=False, epoch=epoch, model_save_path=self.model_save_path)
 
     def pretrain_epoch(self, epoch):
         loss_total = 0
@@ -68,7 +78,7 @@ class PretrainingEngine(TrainingEngine):
             inputs = inputs.to(self.device)
             inputs = self.align_data_with_model(inputs)
             # 修改该部分Method的传播逻辑
-            ls = self.method.train(inputs)
+            ls = self.method.train_step(inputs)
             loss_total = loss_total + ls
             step += 1
             process.set_description(

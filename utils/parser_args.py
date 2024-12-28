@@ -65,6 +65,7 @@ def parser_args(block):
 
     # load checkpoint from here
     parser.add_argument("--pretrained_model", default=None)
+    parser.add_argument("--ignore_weights", default=None)
 
     # Following parameters are used to the pretrain process.
     parser.add_argument("--augmentation", default=None)

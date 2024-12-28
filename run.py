@@ -1,11 +1,15 @@
-import torch.nn as nn
+from ast import main
+from codecs import ignore_errors
 import torch
+import torch.nn as nn
+
 import builder
-from engine.training_engine import SupervisedTrainingEngine
-from engine.pretraining_engine import PretrainingEngine
-import utils
 import dataset
 import model
+import utils
+from engine.linear_eval_engine import LinearEvalEngine
+from engine.pretraining_engine import PretrainingEngine
+from engine.training_engine import SupervisedTrainingEngine
 
 torch.backends.cudnn.enable = False
 torch.backends.cudnn.benchmark = False
@@ -72,15 +76,37 @@ with utils.log.TimerBlock("start") as block:
         )
 
     elif args.run_mode == "pretrain":
+        from model.backbone.resnet import resnet_backbone
         from pretrain.method.simclr import SimCLR
 
-        method = SimCLR(**args.augmentation)
+        backbone = resnet_backbone(model_name="resnet18", weights=None)
+        method = SimCLR(backbone=backbone, **args.augmentation)
         engine = PretrainingEngine(
             block=block,
             method=method,
             train_loader=train_loader,
             val_loader=val_loader,
             model_save_path=args.output_path,
+            pretrained_model=args.pretrained_model,
+            ignore_weights=args.ignore_weights,
+            **args.training_param,
+        )
+
+    elif args.run_mode == "linear_eval":
+        from model.backbone.resnet import resnet_backbone
+        from pretrain.method.simclr import SimCLR
+
+        loss_function = builder.build_loss(args.loss)
+        backbone = resnet_backbone(model_name="resnet18", weights=None)
+        method = SimCLR(backbone=backbone, linear_eval=True, criterion=loss_function, **args.augmentation)
+        engine = LinearEvalEngine(
+            block=block,
+            method=method,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            model_save_path=args.output_path,
+            pretrained_model=args.pretrained_model,
+            ignore_weights=args.ignore_weights,
             **args.training_param,
         )
         
@@ -89,3 +115,6 @@ with utils.log.TimerBlock("start") as block:
         
     assert args.run_mode in engine.run_modes
     getattr(engine, args.run_mode, None)()
+
+if __name__ == "__main__":
+    pass

@@ -24,6 +24,8 @@ The example configurations are under the 'config' directory.
 
 ## Model Zoo
 
+### Supervised Models
+
 <table>
     <thead>
     <tr>
@@ -60,6 +62,28 @@ The example configurations are under the 'config' directory.
         <td><a href="https://arxiv.org/abs/2404.19756">
             KAN: Kolmogorov-Arnold Networks</a></td>
         <td><a href="https://github.com/Blealtan/efficient-kan">https://github.com/Blealtan/efficient-kan</a></td>
+    </tr>
+    </tbody>
+</table>
+
+### Unsupervised Models
+
+<table>
+    <thead>
+    <tr>
+        <th>Model</th>
+        <th>Paper</th>
+        <th>Code</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>SimCLR</td>
+        <td><a href="https://arxiv.org/abs/2002.05709">A Simple Framework for Contrastive Learning of Visual Representations</a>
+        </td>
+        <td><a href="https://arxiv.org/abs/2002.05709">
+                https://arxiv.org/abs/2002.05709</a>
+        </td>
     </tr>
     </tbody>
 </table>

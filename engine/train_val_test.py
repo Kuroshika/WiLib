@@ -27,7 +27,7 @@ def train(model, tensor_loader, num_epochs, learning_rate, criterion, device):
             epoch_accuracy += (predict_y == labels.to(device)).sum().item() / labels.size(0)
         epoch_loss = epoch_loss / len(tensor_loader.dataset)
         epoch_accuracy = epoch_accuracy / len(tensor_loader)
-        print('Epoch:{}, Accuracy:{:.4f},Loss:{:.9f}'.format(epoch + 1, float(epoch_accuracy), float(epoch_loss)))
+        print(f"Epoch:{epoch + 1}, Accuracy:{float(epoch_accuracy):.4f},Loss:{float(epoch_loss):.9f}")
     return
 
 
@@ -52,5 +52,5 @@ def test(model, tensor_loader, criterion, device):
         test_loss += loss.item() * inputs.size(0)
     test_acc = test_acc / len(tensor_loader)
     test_loss = test_loss / len(tensor_loader.dataset)
-    print("validation accuracy:{:.4f}, loss:{:.5f}".format(float(test_acc), float(test_loss)))
+    print(f"validation accuracy:{float(test_acc):.4f}, loss:{float(test_loss):.5f}")
     return
