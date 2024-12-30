@@ -99,7 +99,7 @@ class LinearEvalEngine(TrainingEngine):
             self.pretrain_linear_epoch(epoch)
             self.log(f"Finish training linear for epoch[{epoch}]")
 
-            if (epoch + 1) % self.save_frequency == 0:
+            if (epoch + 1) % self.val_frequency == 0:
                 self.log(f"Begin to val for epoch[{epoch}]")
                 # Add the valadation for linear.
                 self.val_epoch(epoch)
