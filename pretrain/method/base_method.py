@@ -1,12 +1,5 @@
-<<<<<<< HEAD
 
 from abc import abstractmethod
-class BaseMethod():
-    def __init__():
-        pass
-    
-=======
-from abc import ABC, abstractmethod
 from tokenize import String
 from datetime import datetime
 
@@ -33,7 +26,6 @@ class BaseMethod:
         self.total_loss = 0
         self.augmentation = None
 
->>>>>>> Bingoner
     @abstractmethod
     def train():
         pass
