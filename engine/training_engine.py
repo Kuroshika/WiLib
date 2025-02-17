@@ -135,7 +135,7 @@ class SupervisedTrainingEngine(TrainingEngine):
 
         self.summary_writer = SummaryWriter(self.model_save_path)
 
-        self.run_modes = "train_val"
+        self.run_modes = ("train_val")
 
     def train_epoch(self, epoch):
         self.model.train()

@@ -122,3 +122,23 @@ The example configurations are under the 'config' directory.
 </tr>
     </tbody>
 </table>
+
+## Quick Start
+<table>
+    <thead>
+    <tr>
+        <th>Dataset Name</th>
+        <th>Model Name</th>
+        <th>Command</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>UT-HAR</td>
+        <td>ST-GCN</td>
+        <td>python run.py --config config/ut/ut_stgcn.yaml --debug False</td>
+    </tr>
+
+    </tbody>
+</table>
+

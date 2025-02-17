@@ -1,0 +1,60 @@
+debug: False
+
+output_path:
+pretrained_model:
+device_id: [ 0 ]
+cuda_visible_device: '0'
+
+# loss_function
+loss: 'cross_entropy'
+
+data_param:
+  type: "Pico2024"
+  class_num: 4
+  batch_size: 64
+  workers: 10
+  pin_memory: False
+  drop_last: True
+  dataset_mode: [ "train", "val" ]
+
+  train_data_param:
+    data_path: /home/leih/workspace/WiLib/traindata.npy
+    label_path: /home/leih/workspace/pico-out/trainset_cv.csv 
+  val_data_param:
+    data_path: /home/leih/workspace/WiLib/valdata.npy
+    label_path: /home/leih/workspace/pico-out/testset_cv.csv 
+
+# model
+model_param:
+  type: 'UT_HAR_CNN_GRU'
+  input_T: 2500
+  input_S: 980
+  gru_input_size: 156
+  gru_hidden_size: 128
+
+# head_param is for build_head
+head_param:
+  type: 'SimpleHead'
+  num_classes: 4
+  in_channels: 128
+
+
+# optimizer_param is for build_optimizer
+optimizer_param:
+  optim_type: 'adam'
+  lr: 0.001
+  wd: 0
+
+
+# training_param is for class TrainingEngine
+training_param:
+  dataloader_datatype: 'NAST'
+  model_datatype: 'NTW'
+  max_epoch: 100
+  val_frequency: 1
+  save_frequency: 1
+
+
+
+
+
