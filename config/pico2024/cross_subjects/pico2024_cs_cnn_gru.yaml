@@ -11,23 +11,23 @@ loss: 'cross_entropy'
 data_param:
   type: "Pico2024"
   class_num: 4
-  batch_size: 64
+  batch_size: 128
   workers: 10
   pin_memory: False
   drop_last: True
   dataset_mode: [ "train", "val" ]
 
   train_data_param:
-    data_path: 
+    data_path: /home/leih/workspace/WiLib/traindata.npy
     label_path: /home/leih/workspace/pico-out/trainset_cs.csv 
   val_data_param:
-    data_path: 
+    data_path: /home/leih/workspace/WiLib/valdata.npy
     label_path: /home/leih/workspace/pico-out/testset_cs.csv 
 
 # model
 model_param:
   type: 'UT_HAR_CNN_GRU'
-  input_T: 250
+  input_T: 1000
   input_S: 980
   gru_input_size: 156
   gru_hidden_size: 128

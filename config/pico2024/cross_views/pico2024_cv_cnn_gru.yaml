@@ -11,7 +11,7 @@ loss: 'cross_entropy'
 data_param:
   type: "Pico2024"
   class_num: 4
-  batch_size: 64
+  batch_size: 128
   workers: 10
   pin_memory: False
   drop_last: True
